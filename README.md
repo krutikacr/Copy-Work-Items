@@ -53,6 +53,6 @@ Very easy to use.
 
 Install on top of RTC Eclipse Client using the following update site
 
-https://raw.githubusercontent.com/pradeep-b/Copy-Work-Items/release/Update-Site/site.xml
+https://raw.githubusercontent.com/krutikacr/Copy-Work-Items/release/Update-Site/site.xml
 
 **Pre Requisite** - Rational Team Concert 5.0.2 Client
