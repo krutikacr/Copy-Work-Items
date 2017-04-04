@@ -174,7 +174,9 @@ public class ProjectAreaSelectionPage extends WizardPage {
 			return;
 		}
 
-		if (!fContext.targetContext.isAdmin) {
+		// commented this because was getting this error even though was admin
+		// if (!fContext.targetContext.isAdmin) {
+		if (fContext.targetContext.isAdmin) {
 			setErrorMessage("This operation requires Admin role in the selected repository");
 			return;
 		}
