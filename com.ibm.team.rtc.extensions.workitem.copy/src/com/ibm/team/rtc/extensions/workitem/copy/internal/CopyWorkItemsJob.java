@@ -23,16 +23,26 @@
  */
 package com.ibm.team.rtc.extensions.workitem.copy.internal;
 
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.naming.AuthenticationException;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.ibm.team.foundation.common.text.XMLString;
 import com.ibm.team.links.common.IReference;
@@ -55,6 +65,11 @@ import com.ibm.team.workitem.common.model.IWorkItemReferences;
 import com.ibm.team.workitem.common.model.IWorkItemType;
 import com.ibm.team.workitem.common.model.WorkItemEndPoints;
 import com.ibm.team.workitem.common.text.WorkItemTextUtilities;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientHandlerException;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.core.util.Base64;
 
 public class CopyWorkItemsJob {
 
@@ -65,6 +80,7 @@ public class CopyWorkItemsJob {
 	}
 
 	public void run(IProgressMonitor monitor) {
+		System.out.println("IN CopyWorkItemsJob.run()");
 		SubMonitor progress= SubMonitor.convert(monitor);
 		List<IWorkItemHandle> allSources= new ArrayList<IWorkItemHandle>();
 		List<IWorkItemHandle> allTargets= new ArrayList<IWorkItemHandle>();
@@ -77,19 +93,23 @@ public class CopyWorkItemsJob {
 			progress.beginTask("Copy Work Items", (totalResultsSize * 5) + 1);
 
 			// Step 1: Create targets
-			List<WorkItemWorkingCopy> targets= createTargets(workItems, targetAttributes, allSources, allTargets, totalResultsSize, progress.newChild(totalResultsSize));
+			List<WorkItemWorkingCopy> targets = createTargets(workItems, targetAttributes, allSources, allTargets,
+					totalResultsSize, progress.newChild(totalResultsSize));
 			
 			// Step2: Prepare attributes for save
-			prepareAttributesForTargets(targets, targetAttributes, progress.newChild(totalResultsSize + 1));
+			// prepareAttributesForTargets(targets, targetAttributes,
+			// progress.newChild(totalResultsSize + 1));
 
 			// Step 3: Copy Work Items
-			copyTargets(targets, "Copying Work Items", progress.newChild(totalResultsSize));
+			// copyTargets(targets, "Copying Work Items",
+			// progress.newChild(totalResultsSize));
 
-			if (fContext.configuration.copyLinks || fContext.configuration.copyAttachments) {
+			// if (fContext.configuration.copyLinks ||
+			// fContext.configuration.copyAttachments) {
 				// Step 4: Copy links and attachments
-				copyLinks(targets, progress.newChild(totalResultsSize * 2));
-			}
-			fContext.status= Status.OK_STATUS;
+			// copyLinks(targets, progress.newChild(totalResultsSize * 2));
+			// }
+			// fContext.status= Status.OK_STATUS;
 		} catch (TeamRepositoryException e) {
 			fContext.status= new Status(IStatus.ERROR, WorkItemsCopyPlugIn.ID, e.getMessage(), e);
 		} finally {
@@ -111,7 +131,88 @@ public class CopyWorkItemsJob {
 		int counter= 1;
 		while (workItems.hasNext()) {
 			Collection<IWorkItem> batch= workItems.next();
+			System.out.println(batch);
 			for (IWorkItem source : batch) {
+				String str = source.getWorkItemType();
+				try {
+					String str1 = new JSONObject().put("issue type:", str).toString();
+					System.out.println(str1);
+				} catch (JSONException e) { // TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				System.out.println(source.getWorkItemType());
+				// String str = source.getWorkItemType();
+
+				if (str.contains("defect")) {
+					str = "Bug";
+				}
+
+				if (str.contains("subtask")) {
+					str = "Sub-Task";
+
+				}
+
+				if (str.contains("impediment")) {
+					str = "Task";
+
+				}
+				if (str.contains("story")) {
+					str = "story";
+				}
+				if (str.contains("epic")) {
+					str = "epic";
+				}
+
+
+
+				/*
+				 * String timestamp1 = source.getCreationDate().toString();
+				 * System.out.println("extracted timestamp is :" + timestamp1);
+				 * 
+				 * String createdatetransform = datetransform(timestamp1);
+				 * System.out.println("created date after transform:" +
+				 * createdatetransform); System.out.println("after:" + str);
+				 */
+				
+				String baseurl = "https://gbsjiratest.in.edst.ibm.com";
+				String auth = new String(Base64.encode("libertydevlocal:libertydevlocal"));
+				// Create a trust manager that does not validate certificate
+				// chains.
+				// without this when you execute you get clienthandlerexception
+				TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+					public X509Certificate[] getAcceptedIssuers() {
+						return null;
+					}
+
+					public void checkClientTrusted(X509Certificate[] certs, String authType) {
+					}
+
+					public void checkServerTrusted(X509Certificate[] certs, String authType) {
+					}
+				} };
+
+				// Install the all-trusting trust manager
+				try {
+					SSLContext sc = SSLContext.getInstance("TLS");
+					sc.init(null, trustAllCerts, new SecureRandom());
+					HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+				} catch (Exception e) {
+					;
+				}
+				try {
+					// Create Issue
+					String createIssueData = "{\"fields\":{\"project\":{\"key\":\"HELLHE5\"},\"summary\":\"REST Test\",\"issuetype\":{\"name\":\"Bug\"}}}";
+					String issue = invokePostMethod(auth, baseurl + "/rest/api/2/issue", createIssueData);
+					System.out.println(issue);
+				} catch (AuthenticationException e1) {
+					System.out.println("Username or Password wrong!");
+					e1.printStackTrace();
+				} catch (ClientHandlerException e2) {
+					System.out.println("Error invoking REST method");
+					e2.printStackTrace();
+				}
+
 				SubMonitor singleMonitor= creationMonitor.newChild(1);
 				singleMonitor.setTaskName("Creating Work Item " + "(" + counter + " of " + totalResultsSize + ")");
 				String targetType= new WorkItemTypeProcessor().getMapping(null, targetAttributes.findAttribute(IWorkItem.TYPE_PROPERTY, singleMonitor), source.getWorkItemType(), fContext, singleMonitor);
@@ -130,9 +231,43 @@ public class CopyWorkItemsJob {
 				singleMonitor.done();
 				counter++;
 			}
+
 		}
 		creationMonitor.done();
 		return targets;
+	}
+
+	/*
+	 * String datetransform(String date) { try { SimpleDateFormat
+	 * simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:s.S",
+	 * Locale.ENGLISH); Date date1 = simpleDateFormat.parse(date);
+	 * 
+	 * System.out.println(" in datetransform function date as is:" + date);
+	 * System.out.println(" in datetransform function- after parse -date1 :" +
+	 * date1.toString());
+	 * 
+	 * SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("dd/MMM/yy'
+	 * 'h:mm a"); String date2 = simpleDateFormat1.format(date1);
+	 * System.out.println("after transform:" + date2);
+	 * 
+	 * // Timestamp timeStampDate = new Timestamp(date3.getTime()); return
+	 * date2;
+	 * 
+	 * } catch (ParseException e) { System.out.println("Exception :" + e);
+	 * return null; } }
+	 */
+
+	public static String invokePostMethod(String auth, String url, String data)
+			throws AuthenticationException, ClientHandlerException {
+		Client client = Client.create();
+		WebResource webResource = client.resource(url);
+		ClientResponse response = webResource.header("Authorization", "Basic " + auth).type("application/json")
+				.accept("application/json").post(ClientResponse.class, data);
+		int statusCode = response.getStatus();
+		if (statusCode == 401) {
+			throw new AuthenticationException("Invalid Username or Password");
+		}
+		return response.getEntity(String.class);
 	}
 
 	private List<WorkItemWorkingCopy> prepareAttributesForTargets(List<WorkItemWorkingCopy> workingCopies, TargetAttributes targetAttributes, SubMonitor progress) throws TeamRepositoryException {

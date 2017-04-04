@@ -44,10 +44,10 @@ public class WorkItemsCopyPlugIn extends AbstractUIPlugin {
 	 * (non-Javadoc)
 	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
 	 */
-	public void start(BundleContext bundleContext) throws Exception {
-		INSTANCE= this;
-		WorkItemsCopyPlugIn.context = bundleContext;
-	}
+	// public void start(BundleContext bundleContext) throws Exception {
+	// INSTANCE = this;
+	// WorkItemsCopyPlugIn.context = bundleContext;
+	// }
 
 	/*
 	 * (non-Javadoc)

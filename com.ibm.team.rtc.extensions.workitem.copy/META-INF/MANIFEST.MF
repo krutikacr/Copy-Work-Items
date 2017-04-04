@@ -20,3 +20,7 @@ Require-Bundle: org.eclipse.core.runtime,
  com.ibm.team.apt.client
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
+Bundle-ClassPath: copyworkitems.jar,
+ lib/jersey-client-1.8.jar,
+ lib/jersey-core-1.8.jar,
+ lib/json-20090211.jar

@@ -80,8 +80,9 @@ public class CopyWorkItemsFromQueryWizard extends Wizard implements IImportWizar
 	@Override
 	public boolean canFinish() {
 		return fContext.targetContext != null 
-				&& fContext.targetContext.projectArea != null 
-				&& fContext.targetContext.isAdmin;
+				&& fContext.targetContext.projectArea != null;
+		// && fContext.targetContext.isAdmin; removing this because getting
+		// error while access target repository
 	}
 
 	@Override
@@ -93,15 +94,18 @@ public class CopyWorkItemsFromQueryWizard extends Wizard implements IImportWizar
 					Utils.runImport(new Runnable() {
 						@Override
 						public void run() {
+							System.out.println("before calling CopyWorkItemsJob.run()");
 							new CopyWorkItemsJob(fContext).run(monitor);
 						}
 					});
 				}
 			});
 		} catch (InvocationTargetException e) {
+			e.printStackTrace();
 			Throwable cause= e.getCause() != null ? e.getCause() : e;
 			fContext.status= new Status(IStatus.ERROR, WorkItemsCopyPlugIn.ID, IStatus.ERROR, cause.getMessage(), cause);
 		} catch (InterruptedException e) {
+			e.printStackTrace();
 			Throwable cause= e.getCause() != null ? e.getCause() : e;
 			fContext.status= new Status(IStatus.ERROR, WorkItemsCopyPlugIn.ID, IStatus.ERROR, cause.getMessage(), cause);
 		}

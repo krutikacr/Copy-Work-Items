@@ -53,9 +53,9 @@ public class CopyWorkItemsFromQuery implements IObjectActionDelegate {
 		}
 
 
-		CopyWorkItemsFromQueryWizard wizard= new CopyWorkItemsFromQueryWizard();
+		CopyWorkItemsFromQueryWizard wizard = new CopyWorkItemsFromQueryWizard();
 		wizard.init(fPart.getSite().getWorkbenchWindow().getWorkbench(), new StructuredSelection(handle));
-		WizardDialog dialog= new WizardDialog(fPart.getSite().getShell(), wizard);
+		WizardDialog dialog = new WizardDialog(fPart.getSite().getShell(), wizard);
 		dialog.create();
 		dialog.open();
 	}

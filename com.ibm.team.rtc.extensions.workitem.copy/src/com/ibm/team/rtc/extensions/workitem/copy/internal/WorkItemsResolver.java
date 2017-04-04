@@ -62,10 +62,19 @@ public class WorkItemsResolver {
 	
 	public IWorkItems resolve(IProgressMonitor monitor) throws TeamRepositoryException {
 		IQueryResult<IResult> results= fContext.queryClient.getQueryResults(fQuery);
+		System.out.println("hello krutika");
+
+		/*
+		 * while (results.hasNext(monitor)) {
+		 * System.out.println(results.next(monitor).getItem().getItemType());
+		 * System.out.println(results.next(monitor).getItem().getItemType()); }
+		 */
+
 		results.setLimit(Integer.MAX_VALUE);
 		results.setPageSize(BATCH_SIZE);
 		fTotalSize= results.getResultSize(monitor).getTotal();
 		return new WorkItemsIterator(results, monitor);
+
 	}
 
 	public int getTotalResultsSize() {

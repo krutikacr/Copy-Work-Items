@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/com.ibm.team.rtc.extensions.workitem.feature_1.0.0.201602241422.jar" id="com.ibm.team.rtc.extensions.workitem.feature" version="1.0.0.201602241422">
+   <feature url="features/com.ibm.team.rtc.extensions.workitem.feature_1.0.0.201704041202.jar" id="com.ibm.team.rtc.extensions.workitem.feature" version="1.0.0.201704041202">
       <category name="migrate_rtc_502_work_items"/>
    </feature>
    <category-def name="migrate_rtc_502_work_items" label="RTC 502 Work Items Migration Tool"/>
